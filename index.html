@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent-color: #007bff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --border-color: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --table-bg: #f8f9fa;
+            --header-bg: #e9ecef;
+            --completed-bg: #d4edda;
+            --checkbox-bg: #28a745;
+            --active-day-bg: #fff3cd;
+        }
+        .dark {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #2196f3;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --border-color: #333333;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --table-bg: #1e1e1e;
+            --header-bg: #2c2c2c;
+            --completed-bg: #2d5a2d;
+            --checkbox-bg: #4caf50;
+            --active-day-bg: #3c3c3c;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        #theme-toggle {
+            padding: 10px 15px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        #theme-toggle:hover {
+            background-color: var(--accent-color);
+            opacity: 0.9;
+        }
+        .form-container {
+            background-color: var(--table-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow);
+            margin-bottom: 30px;
+        }
+        .form-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input, button {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        input {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            flex: 1;
+            min-width: 200px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: var(--accent-color);
+            opacity: 0.9;
+        }
+        .table-container {
+            overflow: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow);
+            background-color: var(--table-bg);
+            max-height: 70vh;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        thead {
+            background-color: var(--header-bg);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sticky-col {
+            position: sticky;
+            background-color: var(--table-bg);
+            z-index: 1;
+        }
+        .sticky-col:nth-child(1) {
+            left: 0;
+            min-width: 150px;
+        }
+        .sticky-col:nth-child(2) {
+            left: 150px;
+            min-width: 200px;
+        }
+        .sticky-col:nth-child(3) {
+            left: 350px;
+            min-width: 120px;
+        }
+        .habit-row.completed {
+            background-color: var(--completed-bg);
+            animation: completeFade 0.5s ease-in-out;
+        }
+        @keyframes completeFade {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .progress {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        .completed-status {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        .checkbox-cell input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--checkbox-bg);
+            cursor: pointer;
+        }
+        .active-day {
+            background-color: var(--active-day-bg);
+        }
+        .actions button {
+            margin: 0 5px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .edit-btn {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            table {
+                font-size: 0.8rem;
+            }
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Habit Tracker</h1>
+            <button id="theme-toggle">Toggle Theme</button>
+        </header>
+        <div class="form-container">
+            <form id="habit-form" class="form-group">
+                <input type="text" id="habit-name" placeholder="Habit Name" required>
+                <input type="number" id="habit-duration" placeholder="Duration (days)" min="1" required>
+                <button type="submit">Add Habit</button>
+            </form>
+        </div>
+        <div class="table-container">
+            <table id="habit-table">
+                <thead id="table-head"></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        let currentActiveDay = null;
+
+        // Load habits from localStorage
+        function loadHabits() {
+            const habits = localStorage.getItem('habits');
+            return habits ? JSON.parse(habits) : [];
+        }
+
+        // Save habits to localStorage
+        function saveHabits(habits) {
+            localStorage.setItem('habits', JSON.stringify(habits));
+        }
+
+        // Calculate progress and analytics for a habit
+        function calculateProgress(habit) {
+            const days = Array.from({ length: habit.duration }, (_, i) => (i + 1).toString());
+            let completedDays = 0;
+            let currentStreak = 0;
+            let tempStreak = 0;
+
+            for (const day of days) {
+                if (habit.completions[day]) {
+                    completedDays++;
+                    tempStreak++;
+                } else {
+                    tempStreak = 0;
+                }
+            }
+
+            // Current streak from the end
+            for (let i = days.length - 1; i >= 0; i--) {
+                if (habit.completions[days[i]]) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+
+            const progressPercent = (completedDays / habit.duration * 100).toFixed(1);
+            const isCompleted = completedDays === habit.duration;
+
+            return {
+                completedDays,
+                progressPercent,
+                isCompleted,
+                currentStreak,
+                totalCompleted: completedDays
+            };
+        }
+
+        // Render the table
+        function renderTable() {
+            const habits = loadHabits();
+            const tableHead = document.getElementById('table-head');
+            const tableBody = document.getElementById('table-body');
+
+            if (habits.length === 0) {
+                tableHead.innerHTML = '';
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 50px;">No habits yet. Add one above!</td></tr>';
+                return;
+            }
+
+            const maxDuration = Math.max(...habits.map(h => h.duration));
+            const days = Array.from({ length: maxDuration }, (_, i) => `Day ${i + 1}`);
+
+            tableHead.innerHTML = '<tr><th class="sticky-col">Habit</th><th class="sticky-col">Progress</th><th class="sticky-col">Actions</th>' + days.map((day, i) => {
+                const activeClass = currentActiveDay === i + 1 ? 'active-day' : '';
+                return `<th class="${activeClass}">${day}</th>`;
+            }).join('') + '</tr>';
+
+            tableBody.innerHTML = habits.map(habit => {
+                const progress = calculateProgress(habit);
+                const rowClass = progress.isCompleted ? 'completed' : '';
+
+                return `<tr class="${rowClass}">
+                    <td class="sticky-col">${habit.name}</td>
+                    <td class="sticky-col progress">
+                        ${progress.progressPercent}% (${progress.completedDays}/${habit.duration})<br>
+                        Streak: ${progress.currentStreak}<br>
+                        Total: ${progress.totalCompleted}<br>
+                        ${progress.isCompleted ? '<span class="completed-status">Completed!</span>' : ''}
+                    </td>
+                    <td class="sticky-col actions">
+                        <button class="edit-btn" data-id="${habit.id}">Edit</button>
+                        <button class="delete-btn" data-id="${habit.id}">Delete</button>
+                    </td>` +
+                    days.slice(0, habit.duration).map((_, i) => {
+                        const day = (i + 1).toString();
+                        const checked = habit.completions[day] ? 'checked' : '';
+                        const activeClass = currentActiveDay === i + 1 ? 'active-day' : '';
+                        return `<td class="checkbox-cell ${activeClass}"><input type="checkbox" data-habit-id="${habit.id}" data-day="${day}" ${checked}></td>`;
+                    }).join('') +
+                    (habit.duration < maxDuration ? '<td colspan="' + (maxDuration - habit.duration) + '"></td>' : '') +
+                '</tr>';
+            }).join('');
+        }
+
+        // Handle checkbox toggle with auto-navigation and scrolling
+        document.getElementById('table-body').addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+                const habitId = e.target.dataset.habitId;
+                const day = parseInt(e.target.dataset.day);
+                const habits = loadHabits();
+                const habit = habits.find(h => h.id == habitId);
+                if (habit) {
+                    habit.completions[day.toString()] = e.target.checked;
+                    saveHabits(habits);
+
+                    // Auto-navigation: move to next day
+                    const nextDay = day + 1;
+                    if (nextDay <= habit.duration) {
+                        const nextCheckbox = document.querySelector(`input[data-habit-id="${habitId}"][data-day="${nextDay}"]`);
+                        if (nextCheckbox) {
+                            nextCheckbox.focus();
+                            currentActiveDay = nextDay;
+
+                            // Auto-scroll if needed
+                            const tableContainer = document.querySelector('.table-container');
+                            const rect = nextCheckbox.getBoundingClientRect();
+                            const containerRect = tableContainer.getBoundingClientRect();
+                            const threshold = 200;
+                            if (rect.right + threshold > containerRect.right) {
+                                tableContainer.scrollBy({
+                                    left: 300,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        }
+                    } else {
+                        currentActiveDay = null;
+                    }
+                    renderTable();
+                }
+            }
+        });
+
+        // Handle add habit
+        document.getElementById('habit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('habit-name').value.trim();
+            const duration = parseInt(document.getElementById('habit-duration').value);
+            if (name && duration > 0) {
+                const habits = loadHabits();
+                habits.push({
+                    id: Date.now(),
+                    name,
+                    duration,
+                    completions: {}
+                });
+                saveHabits(habits);
+                document.getElementById('habit-form').reset();
+                renderTable();
+            }
+        });
+
+        // Handle edit and delete
+        document.getElementById('table-body').addEventListener('click', (e) => {
+            const habitId = e.target.dataset.id;
+            const habits = loadHabits();
+            if (e.target.classList.contains('edit-btn')) {
+                const habit = habits.find(h => h.id == habitId);
+                if (habit) {
+                    const newName = prompt('Edit Habit Name:', habit.name);
+                    const newDuration = parseInt(prompt('Edit Duration (days):', habit.duration));
+                    if (newName && newDuration > 0) {
+                        habit.name = newName;
+                        habit.duration = newDuration;
+                        // Trim completions if duration shortened
+                        const validDays = Array.from({ length: newDuration }, (_, i) => (i + 1).toString());
+                        const newCompletions = {};
+                        validDays.forEach(day => {
+                            if (habit.completions[day]) newCompletions[day] = true;
+                        });
+                        habit.completions = newCompletions;
+                        saveHabits(habits);
+                        renderTable();
+                    }
+                }
+            } else if (e.target.classList.contains('delete-btn')) {
+                const index = habits.findIndex(h => h.id == habitId);
+                if (index > -1 && confirm('Delete this habit?')) {
+                    habits.splice(index, 1);
+                    saveHabits(habits);
+                    renderTable();
+                }
+            }
+        });
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.classList.toggle('dark', savedTheme === 'dark');
+        themeToggle.textContent = savedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = body.classList.toggle('dark');
+            const theme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            themeToggle.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const activeElement = document.activeElement;
+            if (activeElement.type === 'checkbox') {
+                let nextElement;
+                const currentRow = activeElement.closest('tr');
+                const currentDay = activeElement.dataset.day;
+                switch (e.key) {
+                    case 'ArrowUp':
+                        nextElement = currentRow.previousElementSibling?.querySelector(`input[data-day="${currentDay}"]`);
+                        break;
+                    case 'ArrowDown':
+                        nextElement = currentRow.nextElementSibling?.querySelector(`input[data-day="${currentDay}"]`);
+                        break;
+                    case 'ArrowLeft':
+                        nextElement = activeElement.closest('td').previousElementSibling?.querySelector('input[type="checkbox"]');
+                        break;
+                    case 'ArrowRight':
+                        nextElement = activeElement.closest('td').nextElementSibling?.querySelector('input[type="checkbox"]');
+                        break;
+                    case 'Enter':
+                        activeElement.click();
+                        return;
+                }
+                if (nextElement) {
+                    e.preventDefault();
+                    nextElement.focus();
+                    currentActiveDay = parseInt(nextElement.dataset.day);
+                    renderTable();
+                }
+            }
+        });
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>
